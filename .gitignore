@@ -1,0 +1,15 @@
+*.log*
+.gradle
+build
+buildSrc/.gradle
+buildSrc/build
+
+# See also: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+.idea/*
+!.idea/codeStyles
+!.idea/inspectionProfiles
+!.idea/runConfigurations
+!.idea/encodings.xml
+!.idea/externalDependencies.xml
+!.idea/google-java-format.xml
+!.idea/vcs.xml

@@ -1,0 +1,101 @@
+import com.jakemarsden.gradle.githooks.GitHooksPlugin
+
+plugins {
+  id 'com.github.sherter.google-java-format' version '0.8' apply false
+}
+
+apply plugin: GitHooksPlugin
+
+gitHooks {
+  hooks.put 'pre-commit', 'check'
+}
+
+allprojects {
+  repositories {
+    jcenter()
+  }
+
+  ext {
+    junitVersion = '5.5.2'
+
+    slf4jVersion = '1.7.29'
+    slf4jFluentVersion = '0.13.1'
+  }
+}
+
+subprojects {
+  apply plugin: 'jacoco'
+  apply plugin: 'java'
+  apply plugin: 'com.github.sherter.google-java-format'
+
+  task format {
+    // alias only
+    group tasks.googleJavaFormat.group
+    dependsOn tasks.googleJavaFormat
+  }
+
+  googleJavaFormat {
+    toolVersion = '1.7'
+    options style: 'GOOGLE'
+  }
+
+  verifyGoogleJavaFormat {
+    mustRunAfter tasks.googleJavaFormat
+  }
+
+  java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+    withJavadocJar()
+    withSourcesJar()
+  }
+
+  tasks.withType(JavaCompile) {
+    // when formatting code, always do it before any compilation
+    // when verifying code format, try do it before compilation to fail fast
+    mustRunAfter tasks.googleJavaFormat
+    shouldRunAfter tasks.verifyGoogleJavaFormat
+
+    options.compilerArgs += [
+        '-parameters',
+        '-Werror',
+        '-Xlint:all',
+        '-Xlint:-processing'
+    ]
+    options.deprecation = true
+    options.encoding = 'UTF-8'
+  }
+
+  test {
+    finalizedBy tasks.jacocoTestReport
+    useJUnitPlatform()
+  }
+
+  task processJavadocResources(type: Copy) {
+    group tasks.javadoc.group
+    from 'src/main/java'
+    into "$buildDir/docs/javadoc"
+    include '**/doc-files/*'
+  }
+
+  javadoc {
+    finalizedBy tasks.processJavadocResources
+
+    // see: https://bugs.openjdk.java.net/browse/JDK-8200363
+    options.addBooleanOption 'Xwerror', true
+    options.encoding = 'UTF-8'
+    options.docFilesSubDirs = true
+  }
+}
+
+project('lexer') {
+  apply plugin: 'java-library'
+
+  dependencies {
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+    implementation "org.fissore:slf4j-fluent:$slf4jFluentVersion"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+  }
+}
