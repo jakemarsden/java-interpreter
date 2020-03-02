@@ -52,9 +52,19 @@ public final class Lexer {
         return createToken(WHITESPACE, position, token);
       }
 
+      if (isJavaNumberLiteralStart(c)) {
+        var token = this.parser.consumeWhile(LexTokenIterator::isJavaNumberLiteralPart);
+        return createToken(LITERAL_NUMBER, position, token);
+      }
+
       if (Character.isJavaIdentifierStart(c)) {
         var token = this.parser.consumeWhile(Character::isJavaIdentifierPart);
-        return createToken(Keyword.isKeyword(token) ? KEYWORD : IDENTIFIER, position, token);
+        var type = IDENTIFIER;
+        if (Keyword.isKeyword(token)) return createToken(KEYWORD, position, token);
+        if (token.equals("true")) return createToken(LITERAL_BOOLEAN, position, token);
+        if (token.equals("false")) return createToken(LITERAL_BOOLEAN, position, token);
+        if (token.equals("null")) return createToken(LITERAL_NULL, position, token);
+        return createToken(IDENTIFIER, position, token);
       }
 
       if (c == '\'') {
@@ -62,7 +72,7 @@ public final class Lexer {
         this.parser.consumeExact('\'');
         var token = '\'' + this.parser.consumeWhile(it -> it != '\'') + '\'';
         this.parser.consumeExact('\'');
-        return createToken(QUOTED_SINGLE, position, token);
+        return createToken(LITERAL_CHAR, position, token);
       }
 
       if (c == '"') {
@@ -70,7 +80,7 @@ public final class Lexer {
         this.parser.consumeExact('"');
         var token = '"' + this.parser.consumeWhile(it -> it != '"') + '"';
         this.parser.consumeExact('"');
-        return createToken(QUOTED_DOUBLE, position, token);
+        return createToken(LITERAL_STRING, position, token);
       }
 
       this.parser.consume();
@@ -83,6 +93,27 @@ public final class Lexer {
 
     private static Token createToken(TokenType type, TextPosition position, String value) {
       return Token.of(type, position, value);
+    }
+
+    private static boolean isJavaNumberLiteralStart(int ch) {
+      return (ch >= '0' && ch <= '9') || ch == '+' || ch == '-';
+    }
+
+    private static boolean isJavaNumberLiteralPart(int ch) {
+      if (isJavaNumberLiteralStart(ch)) return true;
+      if (ch >= 'a' && ch <= 'f') return true;
+      if (ch >= 'A' && ch <= 'F') return true;
+      switch (ch) {
+        case '.':
+        case '_':
+        case 'l':
+        case 'L':
+        case 'x':
+        case 'X':
+          return true;
+        default:
+          return false;
+      }
     }
   }
 }
