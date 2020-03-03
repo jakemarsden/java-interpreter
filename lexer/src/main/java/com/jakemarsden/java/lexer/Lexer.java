@@ -1,11 +1,14 @@
 package com.jakemarsden.java.lexer;
 
 import static com.jakemarsden.java.lexer.TokenType.*;
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static org.fissore.slf4j.FluentLoggerFactory.getLogger;
 
 import com.jakemarsden.java.lexer.text.CharIterator;
 import com.jakemarsden.java.lexer.text.TextParser;
 import com.jakemarsden.java.lexer.text.TextPosition;
+import org.fissore.slf4j.FluentLogger;
 
 /**
  * Generates a sequence of language tokens from a sequence of characters.
@@ -14,6 +17,8 @@ import com.jakemarsden.java.lexer.text.TextPosition;
  *     Language Specification: Java SE 11 Edition - Chapter 3. Lexical Structure</a></cite>
  */
 public final class Lexer {
+
+  private static final FluentLogger LOGGER = getLogger(Lexer.class);
 
   /**
    * Creates an iterator over the tokens which are lexed on-demand from the specified {@code
@@ -95,6 +100,7 @@ public final class Lexer {
         return createToken(LITERAL_STRING, position, token);
       }
 
+      LOGGER.warn().log(() -> format("Unsupported token at %s: '%c' U+%04X", position, c, (int) c));
       this.parser.consume();
       return createToken(INVALID, position, c);
     }

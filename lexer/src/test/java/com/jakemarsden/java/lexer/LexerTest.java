@@ -188,6 +188,15 @@ class LexerTest {
   }
 
   @Test
+  void lexInvalidCharacter() {
+    var lexer = new Lexer();
+
+    assertTokensEquals(
+        List.of(createToken(INVALID, 0, 0, 0, "\u0000")),
+        lexer.lex(new StringCharIterator("\u0000")));
+  }
+
+  @Test
   void integration() {
     // Replace with Java 13 text block (eventually)
     String[] sampleCodeLines = {
