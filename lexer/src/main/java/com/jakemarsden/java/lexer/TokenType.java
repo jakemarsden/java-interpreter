@@ -43,10 +43,15 @@ public enum TokenType {
     return this == WHITESPACE;
   }
 
+  /** @return if tokens of this type represent a single character */
   public boolean isSingleChar() {
     return this.singleChar != '\u0000';
   }
 
+  /**
+   * @return the single character represented by tokens of this type
+   * @throws UnsupportedOperationException if tokens of this type don't represent a single character
+   */
   public char getSingleChar() {
     if (!this.isSingleChar()) throw new UnsupportedOperationException();
     return this.singleChar;

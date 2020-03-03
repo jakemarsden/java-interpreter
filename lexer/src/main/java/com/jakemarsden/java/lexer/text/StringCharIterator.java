@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.NoSuchElementException;
 
+/** Iterates over the characters in a given character sequence */
 public final class StringCharIterator implements CharIterator {
 
   private final CharSequence value;

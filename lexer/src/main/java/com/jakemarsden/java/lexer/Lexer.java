@@ -7,8 +7,21 @@ import com.jakemarsden.java.lexer.text.CharIterator;
 import com.jakemarsden.java.lexer.text.TextParser;
 import com.jakemarsden.java.lexer.text.TextPosition;
 
+/**
+ * Generates a sequence of language tokens from a sequence of characters.
+ *
+ * @see <cite><a href="https://docs.oracle.com/javase/specs/jls/se11/html/jls-3.html">The Java&reg;
+ *     Language Specification: Java SE 11 Edition - Chapter 3. Lexical Structure</a></cite>
+ */
 public final class Lexer {
 
+  /**
+   * Creates an iterator over the tokens which are lexed on-demand from the specified {@code
+   * source}.
+   *
+   * @param source where to retrieve the characters for lexing into tokens
+   * @return an iterator over the tokens found in the specified {@code source}
+   */
   public TokenIterator lex(CharIterator source) {
     var parser = new TextParser(source);
     return new LexTokenIterator(parser);

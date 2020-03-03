@@ -26,6 +26,11 @@ public final class Token {
     return this.type;
   }
 
+  /**
+   * Information about the line, column, etc. where the token appears in the source code.
+   *
+   * @return position of the first character of this token in the source code
+   */
   public TextPosition position() {
     return this.position;
   }
