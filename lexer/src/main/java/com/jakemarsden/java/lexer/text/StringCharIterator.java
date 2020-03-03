@@ -6,24 +6,22 @@ import java.util.NoSuchElementException;
 
 public final class StringCharIterator implements CharIterator {
 
-  private final String value;
+  private final CharSequence value;
   private int position;
-  private int length;
 
-  public StringCharIterator(String value) {
+  public StringCharIterator(CharSequence value) {
     this.value = requireNonNull(value);
     this.position = 0;
-    this.length = value.length();
   }
 
   @Override
   public boolean hasNext() {
-    return this.position < this.length;
+    return this.position < this.value.length();
   }
 
   @Override
-  public char next() {
-    if (this.position >= this.length) throw new NoSuchElementException();
+  public char nextChar() {
+    if (this.position >= this.value.length()) throw new NoSuchElementException();
     return this.value.charAt(this.position++);
   }
 }

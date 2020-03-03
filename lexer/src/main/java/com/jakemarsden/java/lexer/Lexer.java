@@ -59,7 +59,6 @@ public final class Lexer {
 
       if (Character.isJavaIdentifierStart(c)) {
         var token = this.parser.consumeWhile(Character::isJavaIdentifierPart);
-        var type = IDENTIFIER;
         if (Keyword.isKeyword(token)) return createToken(KEYWORD, position, token);
         if (token.equals("true")) return createToken(LITERAL_BOOLEAN, position, token);
         if (token.equals("false")) return createToken(LITERAL_BOOLEAN, position, token);
@@ -88,7 +87,7 @@ public final class Lexer {
     }
 
     private static Token createToken(TokenType type, TextPosition position, char value) {
-      return Token.of(type, position, String.valueOf(value));
+      return Token.of(type, position, Character.toString(value));
     }
 
     private static Token createToken(TokenType type, TextPosition position, String value) {

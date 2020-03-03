@@ -32,15 +32,16 @@ public final class TextParser {
   }
 
   public char consume() throws NoSuchElementException {
-    var c = !this.buffer.isEmpty() ? this.buffer.remove() : this.text.next();
+    var c = !this.buffer.isEmpty() ? this.buffer.remove() : this.text.nextChar();
     this.advancePosition(c);
     return c;
   }
 
   public void consumeExact(char expected) throws IllegalStateException, NoSuchElementException {
     var actual = this.peek();
-    if (actual != expected)
+    if (actual != expected) {
       throw new IllegalStateException(format("Expected: '%c' but was: '%c'", expected, actual));
+    }
     this.consume();
   }
 
@@ -61,6 +62,6 @@ public final class TextParser {
   }
 
   private void populateBuffer(int count) throws NoSuchElementException {
-    while (this.buffer.size() < count) this.buffer.add(this.text.next());
+    while (this.buffer.size() < count) this.buffer.add(this.text.nextChar());
   }
 }

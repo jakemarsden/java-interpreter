@@ -24,8 +24,8 @@ public enum Keyword {
   FINALLY,
   FLOAT,
   FOR,
-  IF,
   GOTO,
+  IF,
   IMPLEMENTS,
   IMPORT,
   INSTANCEOF,
@@ -65,7 +65,7 @@ public enum Keyword {
   private final String value;
 
   Keyword() {
-    this.value = String.valueOf(this).toLowerCase();
+    this.value = this.toString().toLowerCase();
   }
 
   Keyword(String value) {

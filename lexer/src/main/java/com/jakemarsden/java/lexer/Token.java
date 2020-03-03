@@ -8,18 +8,18 @@ import com.jakemarsden.java.lexer.text.TextPosition;
 
 public final class Token {
 
-  public static Token of(TokenType type, TextPosition position, String source) {
-    return new Token(type, position, source);
+  public static Token of(TokenType type, TextPosition position, String value) {
+    return new Token(type, position, value);
   }
 
   private final TokenType type;
   private final TextPosition position;
-  private final String source;
+  private final String value;
 
-  private Token(TokenType type, TextPosition position, String source) {
+  private Token(TokenType type, TextPosition position, String value) {
     this.type = requireNonNull(type);
     this.position = requireNonNull(position);
-    this.source = requireNonNull(source);
+    this.value = requireNonNull(value);
   }
 
   public TokenType type() {
@@ -30,8 +30,8 @@ public final class Token {
     return this.position;
   }
 
-  public String source() {
-    return this.source;
+  public String value() {
+    return this.value;
   }
 
   @Override
@@ -43,12 +43,12 @@ public final class Token {
 
     return format(
         "%s[%s, %s, \"%s\"]",
-        this.getClass().getSimpleName(), this.position(), this.type(), this.source());
+        this.getClass().getSimpleName(), this.position(), this.type(), this.value());
   }
 
   @Override
   public int hashCode() {
-    return hash(this.type(), this.position(), this.source());
+    return hash(this.type(), this.position(), this.value());
   }
 
   @Override
@@ -58,6 +58,6 @@ public final class Token {
     var obj = (Token) o;
     return obj.type() == this.type()
         && obj.position().equals(this.position())
-        && obj.source().equals(this.source());
+        && obj.value().equals(this.value());
   }
 }
