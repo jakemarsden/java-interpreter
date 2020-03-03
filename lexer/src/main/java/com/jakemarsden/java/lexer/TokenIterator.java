@@ -3,6 +3,7 @@ package com.jakemarsden.java.lexer;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+/** An {@link Iterator} specialized for {@link Token} values. */
 public interface TokenIterator extends Iterator<Token> {
 
   /**
@@ -20,7 +21,7 @@ public interface TokenIterator extends Iterator<Token> {
    * @throws NoSuchElementException if there are no more tokens
    */
   @Override
-  Token next() throws NoSuchElementException;
+  Token next();
 
   /**
    * Always throws an {@link UnsupportedOperationException}.

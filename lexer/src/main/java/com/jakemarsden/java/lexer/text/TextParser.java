@@ -3,107 +3,188 @@ package com.jakemarsden.java.lexer.text;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayDeque;
-import java.util.NoSuchElementException;
-import java.util.Queue;
-import java.util.function.IntPredicate;
+import java.util.LinkedList;
+import java.util.PrimitiveIterator;
+import java.util.function.Predicate;
 
-/** Useful for parsing some or all of the characters in a {@link CharIterator} */
-public final class TextParser {
+/**
+ * Useful for parsing some or all of the characters retrieved from a {@link
+ * PrimitiveIterator.OfInt}.
+ */
+public final class TextParser implements UnmodifiableTextParser {
 
-  private final CharIterator text;
+  private final PrimitiveIterator.OfInt text;
   private TextPosition position = TextPosition.start();
-  private Queue<Character> buffer = new ArrayDeque<>();
+  private LinkedList<Integer> buffer = new LinkedList<>();
 
-  public TextParser(CharIterator text) {
+  public TextParser(PrimitiveIterator.OfInt text) {
     this.text = requireNonNull(text);
   }
 
-  /**
-   * The position of the current character within the text (i.e. the position of the character which
-   * would be returned by {@link #peek()}).
-   *
-   * @return the position of the current character within the text
-   */
+  /** {@inheritDoc} */
+  @Override
   public TextPosition getPosition() {
     return this.position;
   }
 
-  /**
-   * Returns {@code true} if there are more characters in the text, i.e. if it's safe to call {@link
-   * #peek()}, {@link #consume()}, etc.
-   *
-   * @return {@code true} if there are more characters in the text
-   */
-  public boolean hasNext() {
-    return !this.buffer.isEmpty() || this.text.hasNext();
+  /** {@inheritDoc} */
+  @Override
+  public boolean hasRemaining(int count) {
+    if (count < 0) throw new IllegalArgumentException("Invalid count: " + count);
+    return this.tryPopulateBuffer(count);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public int peek(int offset) {
+    if (offset < 0) throw new IllegalArgumentException("Invalid offset: " + offset);
+    var exists = this.tryPopulateBuffer(offset + 1);
+    return exists ? this.buffer.get(offset) : EOF;
   }
 
   /**
-   * Returns the current character without advancing the position
+   * Advances the position by {@code count} characters.
    *
-   * @return the current character
-   * @throws NoSuchElementException if there are no more characters in the text
+   * @param count the number of characters to advance the position by
    */
-  public char peek() {
-    this.populateBuffer(1);
-    return this.buffer.element();
+  public void skip(int count) {
+    if (count < 0) throw new IllegalArgumentException("Invalid count: " + count);
+    while (count > 0 && !this.buffer.isEmpty()) {
+      var ch = this.buffer.removeFirst();
+      this.advancePosition(ch);
+      count--;
+    }
+    while (count > 0 && this.text.hasNext()) {
+      var ch = this.text.nextInt();
+      this.advancePosition(ch);
+      count--;
+    }
   }
 
   /**
-   * Returns the current character and then advances the position to the next character.
+   * Returns the current character, and then advances the position to the next character. If the end
+   * of the text is reached before the current character {@link #EOF} is returned instead.
    *
-   * @return the current character
-   * @throws NoSuchElementException if there are no more characters in the text
+   * <p>Functionally equivalent to:
+   *
+   * <pre><code>
+   * var ch = this.{@link #peek(int) peek(0)};
+   * this.{@link #skip(int) skip(1)};
+   * return ch;
+   * </code></pre>
+   *
+   * @return the current character before advancing the position, or {@link #EOF} if the end of the
+   *     text is reached first
    */
-  public char consume() {
-    var c = !this.buffer.isEmpty() ? this.buffer.remove() : this.text.nextChar();
-    this.advancePosition(c);
-    return c;
+  public int consume() {
+    if (!this.buffer.isEmpty()) {
+      var ch = this.buffer.removeFirst();
+      this.advancePosition(ch);
+      return ch;
+    }
+    if (this.text.hasNext()) {
+      var ch = this.text.nextInt();
+      this.advancePosition(ch);
+      return ch;
+    }
+    return EOF;
   }
 
   /**
-   * Advances the position only if the current character matches the {@code expected} character
+   * Advances the position if the current character matches the {@code expected} character;
+   * otherwise, throws an {@code IllegalStateException}. The position is not advanced if an {@code
+   * IllegalStateException} is thrown.
+   *
+   * <p>An {@code IllegalStateException} will always be thrown if the end of the text is reached,
+   * regardless of the {@code expected} character.
+   *
+   * <p>Functionally equivalent to:
+   *
+   * <pre><code>
+   * var ch = this.{@link #peek(int) peek(0)};
+   * if (ch == expected &amp;&amp; ch != {@link #EOF EOF}) {
+   *   this.{@link #skip(int) skip(1)};
+   * } else {
+   *   throw new IllegalStateException(...);
+   * }
+   * </code></pre>
    *
    * @param expected the character to consume
    * @throws IllegalStateException if the current character doesn't match the {@code expected}
-   *     character
-   * @throws NoSuchElementException if there are no more characters in the text
+   *     character, or if the end of the text is reached
    */
-  public void consumeExact(char expected) {
-    var actual = this.peek();
-    if (actual != expected) {
-      throw new IllegalStateException(format("Expected: '%c' but was: '%c'", expected, actual));
+  public void consumeExact(int expected) {
+    var ch = this.tryPopulateBuffer(1) ? this.buffer.getFirst() : EOF;
+    if (ch != expected || ch == EOF) {
+      throw new IllegalStateException(
+          format(
+              "Expected: '%c' U+%04X at position %s but was: '%c' U+%04X",
+              expected, expected, this.getPosition(), ch, ch));
     }
-    this.consume();
+    this.buffer.removeFirst();
+    this.advancePosition(ch);
   }
 
   /**
-   * Consumes characters from the text until either the {@code predicate} fails for the
-   * <em>next</em> character, or until the text runs out of characters.
+   * Consumes characters and appends them to the output buffer, until the {@code predicate} fails
+   * for the <em>next</em> character or until the end of the text is reached. The current character
+   * when the {@code predicate} fails is <em>not</em> appended to the output buffer, but it
+   * <em>will</em> be the current character after this method (and so can be accessed via {@code
+   * peek(0)}).
    *
-   * @param predicate determines when to stop consuming characters; the first character to fail will
-   *     not be consumed
-   * @return the characters which were consumed while the {@code predicate} succeeded. doesn't
-   *     include the character which failed the {@code predicate}
+   * <p>Returns
+   *
+   * <ul>
+   *   <li>{@code true} if the {@code predicate} failed before the end of the text
+   *   <li>{@code false} if the end of the text was reached before the {@code predicate} failed
+   * </ul>
+   *
+   * <p>Functionally equivalent to:
+   *
+   * <pre><code>
+   * while (true) {
+   *   var ch = this.{@link #peek(int) peek(0)};
+   *   if (ch == {@link #EOF EOF}) return false;
+   *   if (!predicate.test(this)) return true;
+   *   outBuf.append(ch);
+   *   this.{@link #skip(int) skip(1)};
+   * }
+   * </code></pre>
+   *
+   * @param outBuf the buffer to append consumed characters to
+   * @param predicate the condition which should return {@code false} to stop consuming characters
+   * @return {@code true} if the {@code predicate} failed before the end of the text was reached
    */
-  public String consumeWhile(IntPredicate predicate) {
+  public boolean consumeWhile(StringBuilder outBuf, Predicate<UnmodifiableTextParser> predicate) {
+    requireNonNull(outBuf);
     requireNonNull(predicate);
-    var fragment = new StringBuilder();
-    while (this.hasNext()) {
-      var c = this.peek();
-      if (!predicate.test(c)) break;
-      fragment.append(c);
-      this.consume();
+    while (true) {
+      var ch = this.peek(0);
+      if (ch == EOF) return false;
+      if (!predicate.test(this)) return true;
+      outBuf.appendCodePoint(ch);
+      this.skip(1);
     }
-    return fragment.toString();
   }
 
-  private void advancePosition(char c) {
-    this.position = (c == '\n') ? this.position.nextLine() : this.position.nextColumn();
+  private void advancePosition(int ch) {
+    if (ch == '\n') {
+      this.position = this.position.nextLine();
+    } else {
+      this.position = this.position.nextColumn();
+    }
   }
 
-  private void populateBuffer(int count) {
-    while (this.buffer.size() < count) this.buffer.add(this.text.nextChar());
+  /**
+   * @return {@code true} if at least {@code count} characters were buffered before reaching the end
+   *     of the text
+   */
+  private boolean tryPopulateBuffer(int count) {
+    while (this.buffer.size() < count) {
+      if (!this.text.hasNext()) return false;
+      var ch = this.text.nextInt();
+      this.buffer.addLast(ch);
+    }
+    return true;
   }
 }

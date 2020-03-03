@@ -8,7 +8,7 @@ import com.jakemarsden.java.lexer.text.TextPosition;
 
 public final class Token {
 
-  public static Token of(TokenType type, TextPosition position, String value) {
+  public static Token of(TokenType type, String value, TextPosition position) {
     return new Token(type, position, value);
   }
 

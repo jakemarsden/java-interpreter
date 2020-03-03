@@ -2,7 +2,7 @@ package com.jakemarsden.java.lexer.text;
 
 import static java.lang.String.format;
 
-/** Information about the position of a character within text */
+/** Information about the position of a character within text. */
 public final class TextPosition implements Comparable<TextPosition> {
 
   private static final TextPosition START = new TextPosition(0, 0, 0);
@@ -28,7 +28,7 @@ public final class TextPosition implements Comparable<TextPosition> {
     this.charIdx = charIdx;
   }
 
-  /** @return {@code true} if this position represents the first character in the text */
+  /** @return {@code true} if this position represents the first character of the text */
   public boolean isStart() {
     return this.line() == 0 && this.column() == 0;
   }

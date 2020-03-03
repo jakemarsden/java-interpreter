@@ -1,5 +1,8 @@
 package com.jakemarsden.java.lexer;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 public enum TokenType {
   // Single character tokens:
   ANGLE_LEFT('<'),
@@ -14,6 +17,8 @@ public enum TokenType {
   SEMICOLON(';'),
 
   // Multi-character tokens:
+  COMMENT_BLOCK,
+  COMMENT_LINE,
   IDENTIFIER,
   KEYWORD,
   LITERAL_BOOLEAN,
@@ -24,6 +29,10 @@ public enum TokenType {
   WHITESPACE,
 
   INVALID;
+
+  public static Stream<TokenType> streamValues() {
+    return Arrays.stream(TokenType.values());
+  }
 
   private final char singleChar;
 

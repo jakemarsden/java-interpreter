@@ -50,7 +50,7 @@ public enum Keyword {
   THROWS,
   TRANSIENT,
   TRY,
-  /** The value "<code>_</code>" */
+  /** The value "<code>_</code>". */
   UNDERSCORE("_"),
   /**
    * According to the language spec:
