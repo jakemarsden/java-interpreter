@@ -65,6 +65,7 @@ public final class TextParser {
   /**
    * Advances the position only if the current character matches the {@code expected} character
    *
+   * @param expected the character to consume
    * @throws IllegalStateException if the current character doesn't match the {@code expected}
    *     character
    * @throws NoSuchElementException if there are no more characters in the text
