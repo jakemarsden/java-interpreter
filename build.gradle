@@ -86,6 +86,11 @@ subprojects {
     options.encoding = 'UTF-8'
     options.docFilesSubDirs = true
   }
+
+  check {
+    // ensure JavaDoc is valid
+    dependsOn tasks.javadoc
+  }
 }
 
 project('lexer') {
