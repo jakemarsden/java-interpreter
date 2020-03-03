@@ -209,24 +209,32 @@ class LexingTokenIteratorTest {
 
   @Test
   void numberLiterals() {
+    // decimal integer
     assertTokensEquals(initObjUnderTest("1234"), createToken(LITERAL_NUMBER, "1234", 0));
-    assertTokensEquals(initObjUnderTest("+1234"), createToken(LITERAL_NUMBER, "+1234", 0));
-    assertTokensEquals(initObjUnderTest("-1234"), createToken(LITERAL_NUMBER, "-1234", 0));
     assertTokensEquals(initObjUnderTest("1_234"), createToken(LITERAL_NUMBER, "1_234", 0));
+    // decimal long
+    assertTokensEquals(initObjUnderTest("1234l"), createToken(LITERAL_NUMBER, "1234l", 0));
+    assertTokensEquals(initObjUnderTest("1234L"), createToken(LITERAL_NUMBER, "1234L", 0));
+    // decimal float
+    assertTokensEquals(initObjUnderTest("1234.56f"), createToken(LITERAL_NUMBER, "1234.56f", 0));
+    assertTokensEquals(initObjUnderTest("1234.56F"), createToken(LITERAL_NUMBER, "1234.56F", 0));
+    // decimal double
     assertTokensEquals(initObjUnderTest("1234.56"), createToken(LITERAL_NUMBER, "1234.56", 0));
     assertTokensEquals(initObjUnderTest("1.234e3"), createToken(LITERAL_NUMBER, "1.234e3", 0));
     assertTokensEquals(initObjUnderTest("1.234e+3"), createToken(LITERAL_NUMBER, "1.234e+3", 0));
     assertTokensEquals(initObjUnderTest("1.234e-3"), createToken(LITERAL_NUMBER, "1.234e-3", 0));
-    assertTokensEquals(initObjUnderTest("1234.56f"), createToken(LITERAL_NUMBER, "1234.56f", 0));
-    assertTokensEquals(initObjUnderTest("1234.56F"), createToken(LITERAL_NUMBER, "1234.56F", 0));
-    assertTokensEquals(initObjUnderTest("1234l"), createToken(LITERAL_NUMBER, "1234l", 0));
-    assertTokensEquals(initObjUnderTest("1234L"), createToken(LITERAL_NUMBER, "1234L", 0));
-    assertTokensEquals(
-        initObjUnderTest("0b10011001"), createToken(LITERAL_NUMBER, "0b10011001", 0));
+    // binary integer
+    assertTokensEquals(initObjUnderTest("0b1011"), createToken(LITERAL_NUMBER, "0b1011", 0));
+    assertTokensEquals(initObjUnderTest("0B1011"), createToken(LITERAL_NUMBER, "0B1011", 0));
+    assertTokensEquals(initObjUnderTest("0b10_11"), createToken(LITERAL_NUMBER, "0b10_11", 0));
+    // octal integer
     assertTokensEquals(initObjUnderTest("0231"), createToken(LITERAL_NUMBER, "0231", 0));
+    assertTokensEquals(initObjUnderTest("02_3_1"), createToken(LITERAL_NUMBER, "02_3_1", 0));
+    // hexadecimal integer
     assertTokensEquals(initObjUnderTest("0x99"), createToken(LITERAL_NUMBER, "0x99", 0));
-    assertTokensEquals(
-        initObjUnderTest("0xaAbBcCdDeEfF"), createToken(LITERAL_NUMBER, "0xaAbBcCdDeEfF", 0));
+    assertTokensEquals(initObjUnderTest("0xabcdef"), createToken(LITERAL_NUMBER, "0xabcdef", 0));
+    assertTokensEquals(initObjUnderTest("0xABCDEF"), createToken(LITERAL_NUMBER, "0xABCDEF", 0));
+    assertTokensEquals(initObjUnderTest("0xabc_def"), createToken(LITERAL_NUMBER, "0xabc_def", 0));
   }
 
   @Test

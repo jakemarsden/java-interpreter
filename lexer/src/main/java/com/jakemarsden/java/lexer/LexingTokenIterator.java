@@ -243,8 +243,7 @@ final class LexingTokenIterator implements TokenIterator {
   }
 
   private boolean isNumberLiteralStart(UnmodifiableTextParser p) {
-    var ch0 = p.peek();
-    return ((ch0 == '+' || ch0 == '-') && Character.isDigit(p.peek(1))) || Character.isDigit(ch0);
+    return Character.isDigit(p.peek());
   }
 
   private boolean isNumberLiteralEnd(UnmodifiableTextParser p) {
