@@ -1,5 +1,6 @@
 package com.jakemarsden.java.lexer;
 
+import static com.jakemarsden.java.lexer.LexerUtils.isNumberLiteral;
 import static com.jakemarsden.java.lexer.TokenType.*;
 import static com.jakemarsden.java.lexer.text.TextParser.EOF;
 import static java.lang.String.format;
@@ -154,7 +155,7 @@ final class LexingTokenIterator implements TokenIterator {
     p.consumeWhile(tokenBuf, not(this::isNumberLiteralEnd));
 
     var token = tokenBuf.toString();
-    if (this.isValidNumberLiteral(token)) return Token.of(LITERAL_NUMBER, token, startPos);
+    if (isNumberLiteral(token)) return Token.of(LITERAL_NUMBER, token, startPos);
     return Token.of(INVALID, token, startPos);
   }
 
@@ -243,16 +244,11 @@ final class LexingTokenIterator implements TokenIterator {
   }
 
   private boolean isNumberLiteralStart(UnmodifiableTextParser p) {
-    return Character.isDigit(p.peek());
+    return Character.isDigit(p.peek()) || p.peek() == '.' && Character.isDigit(p.peek(1));
   }
 
   private boolean isNumberLiteralEnd(UnmodifiableTextParser p) {
     return this.isLiteralEnd(p) && p.peek() != '.';
-  }
-
-  private boolean isValidNumberLiteral(String str) {
-    // FIXME: Check if number literal is valid
-    return true;
   }
 
   private boolean isIdentifierOrKeywordStart(UnmodifiableTextParser p) {
