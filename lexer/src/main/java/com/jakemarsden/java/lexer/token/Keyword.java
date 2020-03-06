@@ -1,6 +1,9 @@
-package com.jakemarsden.java.lexer;
+package com.jakemarsden.java.lexer.token;
+
+import static java.util.Objects.requireNonNull;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public enum Keyword {
   ABSTRACT,
@@ -51,7 +54,7 @@ public enum Keyword {
   TRANSIENT,
   TRY,
   /** The value "<code>_</code>". */
-  UNDERSCORE("_"),
+  UNDERSCORE,
   /**
    * According to the language spec:
    *
@@ -72,23 +75,19 @@ public enum Keyword {
   VOLATILE,
   WHILE;
 
-  public static boolean isKeyword(String value) {
-    return Arrays.stream(Keyword.values()) //
-        .map(Keyword::value)
-        .anyMatch(value::equals);
-  }
-
-  private final String value;
-
-  Keyword() {
-    this.value = this.toString().toLowerCase();
-  }
-
-  Keyword(String value) {
-    this.value = value;
+  public static Optional<Keyword> of(String value) {
+    requireNonNull(value);
+    return Arrays.stream(Keyword.values())
+        .filter(keyword -> keyword.value().equals(value))
+        .findFirst();
   }
 
   private String value() {
-    return this.value;
+    return this == Keyword.UNDERSCORE ? "_" : this.name().toLowerCase();
+  }
+
+  @Override
+  public String toString() {
+    return this.value();
   }
 }

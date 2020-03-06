@@ -1,5 +1,6 @@
 package com.jakemarsden.java.lexer;
 
+import com.jakemarsden.java.lexer.token.Token;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 

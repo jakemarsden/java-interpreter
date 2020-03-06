@@ -1,0 +1,17 @@
+package com.jakemarsden.java.lexer.token;
+
+public enum Separator {
+  OPENING_BRACE,
+  CLOSING_BRACE,
+  CLOSING_BRACKET,
+  OPENING_BRACKET,
+  OPENING_PAREN,
+  CLOSING_PAREN,
+
+  ANNOTATION,
+  DOT,
+  ELEMENT_DELIMITER,
+  METHOD_REFERENCE,
+  SEMICOLON,
+  VARARG
+}

@@ -17,6 +17,10 @@ public final class TextParser implements UnmodifiableTextParser {
   private TextPosition position = TextPosition.start();
   private LinkedList<Integer> buffer = new LinkedList<>();
 
+  public TextParser(CharSequence text) {
+    this(text.codePoints().iterator());
+  }
+
   public TextParser(PrimitiveIterator.OfInt text) {
     this.text = requireNonNull(text);
   }
@@ -92,8 +96,8 @@ public final class TextParser implements UnmodifiableTextParser {
 
   /**
    * Advances the position if the current character matches the {@code expected} character;
-   * otherwise, throws an {@code IllegalStateException}. The position is not advanced if an {@code
-   * IllegalStateException} is thrown.
+   * otherwise, throws an {@code IllegalStateException}. The position is not advanced if an
+   * exception is thrown.
    *
    * <p>An {@code IllegalStateException} will always be thrown if the end of the text is reached,
    * regardless of the {@code expected} character.
@@ -109,13 +113,19 @@ public final class TextParser implements UnmodifiableTextParser {
    * }
    * </code></pre>
    *
-   * @param expected the character to consume
+   * @param expected the character to (maybe) consume
    * @throws IllegalStateException if the current character doesn't match the {@code expected}
    *     character, or if the end of the text is reached
    */
   public void consumeExact(int expected) {
     var ch = this.tryPopulateBuffer(1) ? this.buffer.getFirst() : EOF;
-    if (ch != expected || ch == EOF) {
+    if (ch == EOF) {
+      throw new IllegalStateException(
+          format(
+              "Expected: '%c' U+%04X at position %s but was: EOF",
+              expected, expected, this.getPosition()));
+    }
+    if (ch != expected) {
       throw new IllegalStateException(
           format(
               "Expected: '%c' U+%04X at position %s but was: '%c' U+%04X",
@@ -123,6 +133,48 @@ public final class TextParser implements UnmodifiableTextParser {
     }
     this.buffer.removeFirst();
     this.advancePosition(ch);
+  }
+
+  /**
+   * Advances the position if the next characters all match the {@code expectedChars}; otherwise,
+   * throws an {@code IllegalStateException}. The position is not advanced if an exception is
+   * thrown.
+   *
+   * <p>An {@code IllegalStateException} will always be thrown if the end of the text is reached,
+   * regardless of the {@code expectedChars}.
+   *
+   * <p><strong>Not</strong> functionally equivalent to:
+   *
+   * <pre><code>
+   * expectedChars.codePoints()
+   *     .forEach(this::consumeExact);
+   * </code></pre>
+   *
+   * @param expectedChars the characters to (maybe) consume
+   * @throws IllegalStateException the next characters don't match the {@code expectedChars}, or if
+   *     the end of the text is reached
+   */
+  public void consumeExact(CharSequence expectedChars) {
+    var expectedItr = expectedChars.codePoints().iterator();
+    int offset = 0;
+    while (expectedItr.hasNext()) {
+      var expected = expectedItr.nextInt();
+      var ch = this.peek(offset);
+      if (ch == EOF) {
+        throw new IllegalStateException(
+            format(
+                "Expected: '%c' U+%04X at position %s+%d but was: EOF",
+                expected, expected, this.getPosition(), offset));
+      }
+      if (ch != expected) {
+        throw new IllegalStateException(
+            format(
+                "Expected: '%c' U+%04X at position %s+%d but was: '%c' U+%04X",
+                expected, expected, this.getPosition(), offset, ch, ch));
+      }
+      offset++;
+    }
+    this.skip(offset);
   }
 
   /**
